@@ -39,16 +39,7 @@ def main(ifname=None, delimiter=None, columns=None):
     train_data = train_data.drop('Resolution', axis=1)
     test_data = DatePreprocessing(test_data)
     
-    Y=train_data[:,0:2]
-    X=train_data[:,3:22]
-    
-    X_train, X_test, y_train, y_test = train_test_split(X, Y, 
-                                                    test_size=0.2, 
-                                                    random_state=123, 
-                                                    stratify=Y)
-    
-    print(X_train.head())
-    print(X_test.head())
+
     
     
 def DatePreprocessing(data):
