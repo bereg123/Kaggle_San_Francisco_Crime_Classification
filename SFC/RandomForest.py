@@ -13,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier # random forest
 from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import GridSearchCV # cross validation
 from sklearn.svm import SVC
-from sklearn.metrics import mean_squared_error,r2_score,confusion_matrix,classification_report # matrics
+from sklearn.metrics import mean_squared_error, r2_score, confusion_matrix, classification_report, log_loss # matrics
 import gzip
 
 
@@ -96,11 +96,15 @@ def main(ifname=None, delimiter=None, columns=None):
     
     # print(r2_score(y_test, y_pred))
     # print(mean_squared_error(y_test, y_pred))
+    
+    # multi-class log loss score
+    score = log_loss(y_test, y_pred)
+    print(score)
 
     
-    submission = pd.DataFrame(y_pred,columns=Cat.classes_)
+    # submission = pd.DataFrame(y_pred,columns=Cat.classes_)
     # submission['Id'] = X_test.Id.tolist()
-    print(submission)
+    # print(submission)
 # 
 #     #submission_cols = [test.columns[0]]+list(test.columns[14:])
 #     submission.to_csv(gzip.open('first_run.csv.gz','wt'), index = False)
