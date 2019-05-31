@@ -7,6 +7,7 @@ import seaborn as sns
 from collections import Counter
 
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestRegressor # random forest
 from sklearn.pipeline import make_pipeline
@@ -37,8 +38,51 @@ def main(ifname=None, delimiter=None, columns=None):
     #  Data Preprocessing
     train_data = DatePreprocessing(train_data)
     train_data = train_data.drop('Resolution', axis=1)
+    train_data['Cat'] = pd.Series(LabelEncoder().fit_transform(train_data.Category))
+    train_data = train_data.drop('Category', axis=1)
+    train_data = train_data.drop('Descript', axis=1)
     test_data = DatePreprocessing(test_data)
     
+    # print(train_data.head())
+    
+    # Prepare training
+    features = ['PdDistrict_BAYVIEW', 'PdDistrict_CENTRAL', 'PdDistrict_INGLESIDE',
+       'PdDistrict_MISSION', 'PdDistrict_NORTHERN', 'PdDistrict_PARK',
+       'PdDistrict_RICHMOND', 'PdDistrict_SOUTHERN', 'PdDistrict_TARAVAL',
+       'PdDistrict_TENDERLOIN', 'DayOfWeek_Friday', 'DayOfWeek_Monday',
+       'DayOfWeek_Saturday', 'DayOfWeek_Sunday', 'DayOfWeek_Thursday',
+       'DayOfWeek_Tuesday', 'DayOfWeek_Wednesday', 'Month', 'Day', 'Hour']
+    
+    target = 'Cat'
+    
+    X = train_data[features]
+    Y = train_data[target]
+    
+    X_train, X_test, y_train, y_test = train_test_split(X, Y, 
+                                                    test_size=0.2, 
+                                                    random_state=100, 
+                                                    stratify=Y)
+    scaler=preprocessing.StandardScaler().fit(X_train)
+    X_train_scaled = scaler.transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    pipeline = make_pipeline(preprocessing.StandardScaler(), 
+                      SVC(class_weight='balanced', gamma='auto', probability=True))
+                      
+    # kernel: rbf, poly, sigmoid  C: 0.5-1.5
+    hyperparameters= {'svc__kernel': ['poly'],
+    'svc__C': [0.7]}
+    
+    # cross-validation
+    clf = GridSearchCV(pipeline, hyperparameters, cv=3)
+    clg = clf.fit(X_train[0:1500], y_train[0:1500])
+    print(clg.best_params_)
+
+    # prediction result
+    y_pred = clf.predict(X_test)
+    
+    print(r2_score(y_test, y_pred))
+    print(mean_squared_error(y_test, y_pred))
 
     
     
@@ -57,8 +101,6 @@ def DatePreprocessing(data):
     data = data.drop('Address', axis=1)
     data = data.drop('X', axis=1)
     data = data.drop('Y', axis=1)
-    
-    
     
     
     return data
